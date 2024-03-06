@@ -2,20 +2,22 @@ import torchtext
 import logging
 from typing import List
 from .vocab_abc import Vocab
-from .special_tokens import *
+from .options import VocabOptions
 
 class TorchTextVocab(Vocab):
-    def __init__(self):
+    def __init__(self, options:VocabOptions=None):
         self._vocab = None
+        self._options = options
 
-    def build(self, samples, min_freq=1, specials: List[str]=SPECIAL_TOKENS):
+    def build(self, samples):
+        # breakpoint()
         self._vocab =  torchtext.vocab.build_vocab_from_iterator(
             samples,
-            min_freq,
-            specials=specials,
+            min_freq=self._options.min_freq,
+            specials=self._options.special_tokens, 
         )
         self._set_unk_index()
-        logging.info("vocab build completed")
+        logging.info(f"vocab: {self._options.name}  build completed")
 
     def lookup_tokens(self, tokens:List[str]) -> List[int]:
         return self._vocab.lookup_tokens(tokens)
@@ -25,14 +27,14 @@ class TorchTextVocab(Vocab):
 
     def __contains__(self, key):
         if self._vocab  == None:
-            raise Exception("vocab not ready, pleaase run build first")
+            raise Exception("vocab not ready, please run build first")
         return key in self._vocab
     
     def __getitem__(self, key):
         return self._vocab[key]
 
-    def _set_unk_index(self,unk_token=unk_token):
+    def _set_unk_index(self):
         if self._vocab  == None:
-            raise Exception("vocab not ready, pleaase run build first")       
-        unk_index = self._vocab[unk_token]
+            raise Exception("vocab not ready, please run build first")       
+        unk_index = self._vocab[self._options.unk_token]
         self._vocab.set_default_index(unk_index)
