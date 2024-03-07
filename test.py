@@ -4,7 +4,7 @@ from genseq.tokenizer.options import TokenizerOptions
 from genseq.vocab import NewVocab
 from genseq.vocab.options import VocabOptions
 from genseq.vocab.special_tokens import SPECIAL_TOKENS
-from genseq.dataset import NewDataSet, DatasetOptions
+from genseq.dataset import NewDataSet, DatasetOptions, NewDataLoader
 
 setup_all()
 tokenizer_en = NewTokenizer("en", TokenizerOptions(ngrams=1))
@@ -22,12 +22,22 @@ options = DatasetOptions(tokenize=True,
                          max_length=1000,
                          lower=True,
                          index=True,
-                         feature_vocab_mapping={"en":vocab_en, "de":vocab_de})
-train_dataset = NewDataSet("bentrevett/multi30k", "validation", options=options)
+                         feature_vocab_mapping={"en":vocab_en, "de":vocab_de},
+                         to_torch=True,
+                         )
+train_dataset = NewDataSet("bentrevett/multi30k", "train", options=options)
 
-print(train_dataset)
-print(train_dataset.features)
+# print(train_dataset)
+# print(train_dataset.features)
 
-print(train_dataset[0]["en_tokens"])
-print(train_dataset[0]["en_ids"])
+# print(train_dataset[0])
+
+print(vocab_en.pad_token_index)
+print(vocab_de.pad_token_index)
+
+
+batch_size = 128
+
+train_data_loader = NewDataLoader(train_dataset, batch_size, ["en", "de"], vocab_en.pad_token_index,  shuffle=True)
+
 

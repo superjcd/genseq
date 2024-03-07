@@ -1,4 +1,6 @@
 import datasets
+import torch
+from torch import nn
 from dataclasses import dataclass, field
 from typing import Dict
 from genseq.tokenizer import Tokenizer
@@ -15,6 +17,7 @@ class DatasetOptions:
     eos_token: str = eos_token
     index: bool = False
     feature_vocab_mapping:Dict[str, Vocab] = field(default_factory=dict)
+    to_torch:bool = False
 
 def tokenize_example(example, feature:str,tokenizer:Tokenizer, options:DatasetOptions):
     tokens = tokenizer.tokenize(example[feature])[:options.max_length]
@@ -43,7 +46,39 @@ def NewDataSet(path, split, options:DatasetOptions=None):
                 raise IndexError(f"{feature} not in dataset")
             vocab.build(dataset[f"{feature}_tokens"])
             dataset = dataset.map(index_example, fn_kwargs={"feature":feature, "vocab": vocab})
+
+        if options.to_torch:
+            cols = []
+            for feature in options.feature_vocab_mapping.keys():
+                feature_key = feature + "_" + "ids" 
+                cols.append(feature_key)
+            dataset = dataset.with_format(
+                        type="torch",
+                        columns=cols,
+                        output_all_columns=True,
+                    )
+
     return dataset
 
 
-    
+def get_collate_fn(features, pad_index: int):
+    def collate_fn(batch):
+        new_batch = {}
+        for feature in features:
+            key = feature + "_" + "ids" 
+            data = [example[key] for example in batch]
+            data = nn.utils.rnn.pad_sequence(data, padding_value=pad_index)
+            new_batch[key] = data
+        return new_batch
+    return collate_fn
+
+
+def NewDataLoader(dataset, batch_size, features, pad_index, shuffle=False):
+    collate_fn = get_collate_fn(features, pad_index)
+    data_loader = torch.utils.data.DataLoader(
+        dataset=dataset,
+        batch_size=batch_size,
+        collate_fn=collate_fn,
+        shuffle=shuffle,
+    )
+    return data_loader

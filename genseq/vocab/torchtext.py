@@ -20,10 +20,25 @@ class TorchTextVocab(Vocab):
         logging.info(f"vocab: {self._options.name}  build completed")
 
     def lookup_tokens(self, tokens:List[str]) -> List[int]:
+        if self._vocab  == None:
+            raise Exception("vocab not ready, please run build first")
         return self._vocab.lookup_tokens(tokens)
     
     def lookup_indices(self, indcies:List[int]) -> List[str]:
+        if self._vocab  == None:
+            raise Exception("vocab not ready, please run build first")
         return self._vocab.lookup_indices(indcies)
+    
+    @property
+    def pad_token_index(self):
+        if self._vocab  == None:
+            raise Exception("vocab not ready, please run build first")
+        return self._vocab[self._options.pad_token]
+    @property
+    def unk_token_index(self):
+        if self._vocab  == None:
+            raise Exception("vocab not ready, please run build first")
+        return self._vocab[self._options.unk_token]
 
     def __contains__(self, key):
         if self._vocab  == None:

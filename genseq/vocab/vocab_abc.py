@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 
 class Vocab(ABC):
     @abstractmethod
@@ -12,6 +12,12 @@ class Vocab(ABC):
     @abstractmethod
     def lookup_indices():
         ...
+    
+    @abstractproperty
+    def pad_token_index():
+        ...
 
-
+    @abstractproperty
+    def unk_token_index():
+        ...
 
