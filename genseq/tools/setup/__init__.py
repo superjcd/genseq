@@ -16,7 +16,8 @@ class Modes(Enum):
     ## TODO: 
     ... 
 
-def  setup_all(mode=""):
+def  setup_all(seed=123):
+    _init(seed)
     if torch.cuda.is_available():
         _setup_for_single_gpu()
     if torch.backends.mps.is_available():
